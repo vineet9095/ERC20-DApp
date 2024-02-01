@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ERC20 Token CONTRACT</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.2.7-rc.0/web3.min.js"></script>
+    <style>
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            display: none;
+        }
+
+        body {
+            background: linear-gradient(45deg, #3498db, #e74c3c);
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 20px;
+            color: white;
+        }
+
+        h1 {
+            color: white;
+        }
+
+        button {
+            background-color: #2ecc71;
+            color: white;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+        }
+
+        input {
+            width: 200px;
+            height: 30px;
+            font-size: 16px;
+            margin: 5px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input::placeholder {
+            text-align: center;
+        }
+
+
+        p {
+            font-size: 18px;
+            color: white;
+        }
+
+        #dataArea {
+            margin-top: 20px;
+        }
+
+        #mintArea,
+        #burnArea,
+        #balArea,
+        #TransferArea,
+        #ApproveArea,
+        #TransferfromArea,
+        #TransferownershipArea,
+        #ReannoumcesownershipArea {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h1>This is My ERC20 dApp</h1>
+
+    <button onclick="connectMetamask()">CONNECT TO METAMASK</button> <br>
+    <p id="accountArea">Connection Status: NOT CONNECTED to Metamask </p>
+
+    <button onclick="connectContract()">CONNECT TO CONTRACT</button> <br>
+    <p id="contractArea">Connection Status: NOT CONNECTED to Smart Contract</p>
+
+    <button onclick="readWord()">GET DATA FROM CONTRACT</button> <br>
+    <p id="dataArea">Data Status: NO Data from Smart Contract </p>
+
+    <input type="text" id="to" placeholder="To (Address)">
+    <input type="number" id="amountM" placeholder="Enter Amount">
+    <button onclick="mints()">MINT TOKEN</button><br>
+    <p id="mintArea"></p>
+
+    <input type="text" id="acc" placeholder="Enter Address">
+    <button onclick="balCheck()">GET BALANCE</button>
+    <p id="balArea"></p><br>
+
+    <input type="number" id="amountB" placeholder="Enter Amount">
+    <button onclick="burns()">BURN TOKEN</button><br>
+    <p id="burnArea"></p>
+
+    <input type="text" id="receive" placeholder="Enter Receiver Address">
+    <input type="number" id="amount" placeholder="Enter Amount">
+    <button onclick="transfers()">Transfer Token</button>
+    <p id="TransferArea"></p>
+
+    <input type="text" id="spenders" placeholder="Enter spender Address">
+    <input type="number" id="values" placeholder="Enter Amount">
+    <button onclick="approves()">Approve</button>
+    <p id="ApproveArea"></p>
+
+    <input type="text" id="fromss" placeholder="Enter From Address">
+    <input type="text" id="too" placeholder="Enter to address">
+    <input type="number" id="valuee" placeholder="Enter Amount">
+    <button onclick="transfersfrom()">Transfer From</button>
+    <p id="TransferfromArea"></p>
+
+    <input type="text" id="newOwnerr" placeholder="Enter newOwner Address">
+    <button onclick="transfersownership()">Transfer Ownership</button>
+    <p id="TransferownershipArea"></p>
+
+    <button onclick="reannoumcesownership()">Renounce Ownership</button>
+    <p id="ReannoumcesownershipArea"></p>
+    <script>
+        let account;
+        const connectMetamask = async () => {
+            if (window.ethereum !== "undefined") {
+                const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+                account = accounts[0];
+                document.getElementById("accountArea").innerHTML = `Account is: ${account}`;
+            }
+
+        }
+
+        const connectContract = async () => {
+            const ABI = [{ "inputs": [{ "internalType": "address", "name": "initialOwner", "type": "address" }], "stateMutability": "nonpayable", "type": "constructor" }, { "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "allowance", "type": "uint256" }, { "internalType": "uint256", "name": "needed", "type": "uint256" }], "name": "ERC20InsufficientAllowance", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "sender", "type": "address" }, { "internalType": "uint256", "name": "balance", "type": "uint256" }, { "internalType": "uint256", "name": "needed", "type": "uint256" }], "name": "ERC20InsufficientBalance", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "approver", "type": "address" }], "name": "ERC20InvalidApprover", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "receiver", "type": "address" }], "name": "ERC20InvalidReceiver", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "sender", "type": "address" }], "name": "ERC20InvalidSender", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }], "name": "ERC20InvalidSpender", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }], "name": "OwnableInvalidOwner", "type": "error" }, { "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "OwnableUnauthorizedAccount", "type": "error" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "owner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "spender", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "Approval", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" }, { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }], "name": "OwnershipTransferred", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "address", "name": "from", "type": "address" }, { "indexed": true, "internalType": "address", "name": "to", "type": "address" }, { "indexed": false, "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "Transfer", "type": "event" }, { "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }, { "internalType": "address", "name": "spender", "type": "address" }], "name": "allowance", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "spender", "type": "address" }, { "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "approve", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "account", "type": "address" }], "name": "balanceOf", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "burn", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "account", "type": "address" }, { "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "burnFrom", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "decimals", "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "to", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "mint", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "name", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "owner", "outputs": [{ "internalType": "address", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "symbol", "outputs": [{ "internalType": "string", "name": "", "type": "string" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "totalSupply", "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "recipient", "type": "address" }, { "internalType": "uint256", "name": "amount", "type": "uint256" }], "name": "transfer", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "from", "type": "address" }, { "internalType": "address", "name": "to", "type": "address" }, { "internalType": "uint256", "name": "value", "type": "uint256" }], "name": "transferFrom", "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }], "name": "transferOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" }];
+            const Address = "0x2B30F0ed1c5608ffcF8529aF0C3F360D9F061320";
+            window.web3 = await new Web3(window.ethereum);
+            window.contract = await new window.web3.eth.Contract(ABI, Address);
+            document.getElementById("contractArea").innerHTML = "Connection Status: Success";
+        }
+
+        const readWord = async () => {
+            try {
+                const name = await window.contract.methods.name().call();
+                const symbol = await window.contract.methods.symbol().call();
+                const owner = await window.contract.methods.owner().call();
+                const totalSupply = await window.contract.methods.totalSupply().call();
+
+                document.getElementById("dataArea").innerHTML = `<p>
+                        Name of token : ${name} <br>
+                        Symbolof token : ${symbol} <br>
+                        Owner of token : ${owner} <br>
+                        Total Supply of token : ${totalSupply / 1000000000000000000} <br>
+                    </p>`;
+
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        const mints = async () => {
+            try {
+                const to = document.getElementById('to').value;
+                const amountM = parseFloat(document.getElementById('amountM').value);
+
+                if (!web3.utils.isAddress(to) || isNaN(amountM)) {
+                    return;
+                }
+
+                const amountInWei = web3.utils.toWei(amountM.toString(), 'ether');
+
+                const receipt = await window.contract.methods.mint(to, amountInWei).send({ from: account });
+
+                document.getElementById('mintArea').innerHTML = `${amountM} tokens Minted to ${to} `;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('mintArea').innerHTML = 'Transaction failed';
+            }
+        }
+
+        const burns = async () => {
+            try {
+                // const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                // const from = accounts[0];
+
+                const amountB = parseFloat(document.getElementById('amountB').value);
+
+                if (isNaN(amountB)) {
+                    throw new Error('Invalid amount');
+                }
+
+                const amountInWei = web3.utils.toWei(amountB.toString(), 'ether');
+
+                // Use the correct 'from' variable
+                const trhas = await window.contract.methods.burn(amountInWei).send({ from: account });
+
+                document.getElementById('burnArea').innerHTML = `${amountB} tokens burned from ${account}`;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('burnArea').innerHTML = 'Transaction failed';
+            }
+        };
+
+
+        const balCheck = async () => {
+            try {
+
+                const add = document.getElementById('acc').value;
+                const balanceOf = await window.contract.methods.balanceOf(add).call();
+
+                document.getElementById("balArea").innerHTML = `<p>
+                        Balance is: ${balanceOf / 1000000000000000000} tokens <br>
+                    </p>`;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        const transfers = async () => {
+            try {
+                const receive = document.getElementById('receive').value;
+                const amount = parseFloat(document.getElementById('amount').value);
+
+                if (!web3.utils.isAddress(receive) || isNaN(amount)) {
+                    return;
+                }
+
+                const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
+
+                const receipt = await window.contract.methods.transfer(receive, amountInWei).send({ from: account });
+
+                document.getElementById('TransferArea').innerHTML = `${amount} tokens transfferred to ${receive} `;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('TransferArea').innerHTML = 'Transaction failed';
+            }
+        }
+
+        const approves = async () => {
+            try {
+                const spenders = document.getElementById('spenders').value;
+                const amount = parseFloat(document.getElementById('values').value);
+
+                if (!web3.utils.isAddress(spenders) || isNaN(amount)) {
+                    return;
+                }
+
+                const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
+
+                const receipt = await window.contract.methods.approve(spenders, amountInWei).send({ from: account });
+
+                document.getElementById('ApproveArea').innerHTML = `${amount} tokens Approve to ${spenders} `;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('ApproveArea').innerHTML = 'Transaction failed';
+            }
+        }
+
+        const transfersfrom = async () => {
+            try {
+                console.log("1",)
+                const fromsss = document.getElementById('fromss').value;
+                console.log("2", fromsss)
+                const tooo = document.getElementById('too').value;
+                console.log("3", tooo)
+                const amount = parseFloat(document.getElementById('valuee').value);
+                console.log("4", amount)
+
+                if (!web3.utils.isAddress(fromsss) || isNaN(amount || !web3.utils.isAddress(tooo))) {
+                    return;
+                }
+
+                const amountInWei = web3.utils.toWei(amount.toString(), 'ether');
+                console.log("55", amountInWei);
+
+                const receipt = await window.contract.methods.transferFrom(fromsss, tooo, amountInWei).send({ from: account });
+                console.log("5", receipt)
+
+                document.getElementById('TransferfromArea').innerHTML = `${amount} tokens Transfer from ${fromsss} to ${tooo} `;
+                console.log("6",)
+            } catch (error) {
+                console.log("7",)
+                console.error(error);
+                document.getElementById('TransferfromArea').innerHTML = 'Transaction failed';
+            }
+        }
+
+        const transfersownership = async () => {
+            try {
+                const newOwnerrr = document.getElementById('newOwnerr').value;
+
+                if (!web3.utils.isAddress(newOwnerrr)) {
+                    return;
+                }
+
+                const receipt = await window.contract.methods.transferOwnership(newOwnerrr).send({ from: account });
+
+                document.getElementById('TransferownershipArea').innerHTML = `Ownership transfer  ${account} to ${newOwnerrr} `;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('TransferownershipArea').innerHTML = 'Transaction failed';
+            }
+        }
+
+        const reannoumcesownership = async () => {
+            try {
+
+                const receipt = await window.contract.methods.renounceOwnership().send({ from: account });
+
+                document.getElementById('ReannoumcesownershipArea').innerHTML = `Now you are the owner of this contract `;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('ReannoumcesownershipArea').innerHTML = 'Transaction failed';
+            }
+        }
+    </script>
+
+</body>
+
+</html>
